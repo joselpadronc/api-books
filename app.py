@@ -8,6 +8,18 @@ app.config['SQLALCHEMY_ECHO'] = True
 
 db = SQLAlchemy(app)
 
+class Book(db.Model):
+
+	#Establece el nombre de la tabla
+	__tablename__ = 'books_saved'
+
+	id = db.Column(db.Integer, primary_key=True)
+	title = db.Column(db.String(80), nullable=False)
+	description = db.Column(db.Text, nullable=False)
+	author = db.Column(db.String(150), nullable=False)
+	launching = db.Column(db.String(150), nullable=False)
+
+
 books_saved = Books
 
 @app.route('/')
