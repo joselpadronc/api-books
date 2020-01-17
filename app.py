@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{root}:{jose1766}@localhost:8080/{api_books}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_ECHO'] = True
 
 db = SQLAlchemy(app)
@@ -11,16 +12,14 @@ db = SQLAlchemy(app)
 class Book(db.Model):
 
 	#Establece el nombre de la tabla
-	__tablename__ = 'books_saved'
-
+	__tablename__ = 'books'
+	__table_args__ = {'extend_existing': True}
 	id = db.Column(db.Integer, primary_key=True)
 	title = db.Column(db.String(80), nullable=False)
 	description = db.Column(db.Text, nullable=False)
 	author = db.Column(db.String(150), nullable=False)
 	launching = db.Column(db.String(150), nullable=False)
 
-
-books_saved = Books
 
 @app.route('/')
 def index():
@@ -49,16 +48,23 @@ def search_book(book_id):
 #Publicar nuevo libro
 @app.route('/api/books/', methods=["GET", "POST"])
 def add_book():
-	book_data = {
-		"id": request.json['id'],
-		"title": request.json['title'],
-		"description": request.json['description'],
-		"author": request.json['author'],
-		"launching": request.json["launching"]
-	}
-	books_saved.append(book_data)
+	title = request.json['title']
+	description = request.json['title']
+	author = request.json['author']
+	launching = request.json['launching']
 
-	return jsonify({"message": "Lista de Libros guardados"}, {"books": books_saved})
+	if request.method == 'POST':
+		new_book = Book(
+			title=title,
+			description=description,
+			author=author,
+			launching=launching
+		)
+
+		return jsonify({"message": "The book is added"})
+
+	else:
+		return jsonify({"message": "The book can't added"})
 
 
 #Eliminar un libro
