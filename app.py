@@ -1,7 +1,12 @@
 from flask import Flask, jsonify, request
 from books import Books
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{root}:{jose1766}@localhost:8080/{api_books}'
+app.config['SQLALCHEMY_ECHO'] = True
+
+db = SQLAlchemy(app)
 
 books_saved = Books
 
@@ -9,7 +14,7 @@ books_saved = Books
 def index():
 	return jsonify({"ping": "pong"})
 
-
+	
 #Obtener la lista de libros
 @app.route('/api/books', methods=["GET"])
 def  get_books():
