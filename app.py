@@ -1,24 +1,21 @@
+import os
 from flask import Flask, jsonify, request
 from books import Books
 from flask_sqlalchemy import SQLAlchemy
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{root}:{jose1766}@localhost:8080/{api_books}'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-app.config['SQLALCHEMY_ECHO'] = True
+dbdir = 'sqlite:///' + os.path.abspath(os.getcwd()) + '/db_books.db'
 
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = dbdir
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-class Book(db.Model):
-
-	#Establece el nombre de la tabla
-	__tablename__ = 'books'
-	__table_args__ = {'extend_existing': True}
+class Books(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	title = db.Column(db.String(80), nullable=False)
-	description = db.Column(db.Text, nullable=False)
-	author = db.Column(db.String(150), nullable=False)
-	launching = db.Column(db.String(150), nullable=False)
+	title = db.Column(db.String(80))
+	description = db.Column(db.String(255))
+	author = db.Column(db.String(100))
+	launching = db.Column(db.String(100))
 
 
 @app.route('/')
@@ -29,46 +26,52 @@ def index():
 #Obtener la lista de libros
 @app.route('/api/books', methods=["GET"])
 def  get_books():
-	return jsonify({"message": "Lista de Libros guardados"}, {"books": books_saved})
+	books_list = Books.query.all()
+	print('Query done')
+	return jsonify(
+		{"message":"Books saved"},
+		{"books saved": books_list}
+	)
 
 
 #Buscar libro
 @app.route('/api/books/<int:book_id>', methods=["GET"])
 def search_book(book_id):
-	book_found = [book for book in books_saved if book["id"] == book_id]
-	
-	if len(book_found) > 0:
-		return jsonify({"message": "Este es el libro que buscas"}, book_found)
+	book_found = Books.query.filter_by(id=book_id).first()
 
-	else:
-		return jsonify({"message": "The book not found"})
+	print("query done", book_found.title)
+	return jsonify(
+		{"title":book_found.title,
+		"description":book_found.description,
+		"author":book_found.author,
+		"launching":book_found.launching}
+	)
 
 
 
 #Publicar nuevo libro
-@app.route('/api/books/', methods=["GET", "POST"])
+@app.route('/api/books/', methods=["POST"])
 def add_book():
-	title = request.json['title']
-	description = request.json['title']
-	author = request.json['author']
-	launching = request.json['launching']
 
 	if request.method == 'POST':
-		new_book = Book(
-			title=title,
-			description=description,
-			author=author,
-			launching=launching
+		new_book = Books(
+			title=request.json["title"],
+			description=request.json["description"],
+			author=request.json["author"],
+			launching=request.json["launching"]
 		)
+	
+		db.session.add(new_book)
+		db.session.commit()
 
 		return jsonify({"message": "The book is added"})
-
+	
 	else:
-		return jsonify({"message": "The book can't added"})
+		return jsonify({"message": "The book isn\'t added"})
 
 
 #Eliminar un libro
-@app.route('/api/books/<int:book_id>', methods=["GET", "DELETE"])
+@app.route('/api/books/<int:book_id>', methods=["DELETE"])
 def remove_book(book_id):
 	book_found = [book for book in books_saved if book["id"] == book_id]
 	
@@ -99,4 +102,5 @@ def update_book(book_id):
 
 
 if __name__ == "__main__":
+	db.create_all()
 	app.run(debug=True, port=8080)

@@ -1,3 +1,4 @@
 .vscode/
 envi/
 __pycache__/
+db_books.db
