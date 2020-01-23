@@ -73,32 +73,35 @@ def add_book():
 #Eliminar un libro
 @app.route('/api/books/<int:book_id>', methods=["DELETE"])
 def remove_book(book_id):
-	book_found = [book for book in books_saved if book["id"] == book_id]
-	
-	if len(book_found) > 0:
-		books_saved.remove(book_found[0])
-		return jsonify({"message": "The book is deleted"}, books_saved)
+	book_found = Books.query.filter_by(id=book_id).first()
 
-	else:
-		return jsonify({"message": "The book not found"})
+	db.session.delete(book_found)
+	db.session.commit()
+
+	print("query done", book_found.title)
+	return jsonify({"message":"Book deleted"})
 
 
 #Actulizar o editar un libro
 @app.route('/api/books/<int:book_id>', methods=["GET", "PUT"])
 def update_book(book_id):
-	book_found = [book for book in books_saved if book["id"] == book_id]
-	
-	if len(book_found) > 0:
-		book_found[0]['title'] = request.json['title']
-		book_found[0]['description'] = request.json['description']
-		book_found[0]['author'] = request.json['author']
-		book_found[0]['launching'] = request.json['launching']
+	book_found = Books.query.filter_by(id=book_id).first()
+		
+	book_found.title      = request.json["title"]
+	book_found.description= request.json["description"]
+	book_found.author     = request.json["author"]
+	book_found.launching  = request.json["launching"]
 
-		return jsonify({"message": "The book is updated"}, books_saved)
+	db.session.add(book_found)
+	db.session.commit()
 
-	else:
-		return jsonify({"message": "The book not found"})
-
+	print("Book updated", book_found.title)
+	return jsonify(
+		{"title": book_found.title,
+     "description": book_found.description,
+     "author": book_found.author,
+     "launching": book_found.launching}
+	)
 
 
 if __name__ == "__main__":
