@@ -1,7 +1,8 @@
 import os
 from flask import Flask, jsonify, request
-from books import Books
 from flask_sqlalchemy import SQLAlchemy
+from marshmallow import Schema, fields
+from books import Books
 
 dbdir = 'sqlite:///' + os.path.abspath(os.getcwd()) + '/db_books.db'
 
@@ -18,6 +19,13 @@ class Books(db.Model):
 	launching = db.Column(db.String(100))
 
 
+class BookSchema(Schema):
+	id = fields.Int()
+	title = fields.Str()
+	description = fields.Str()
+	author = fields.Str()
+	launching = fields.Str()
+
 @app.route('/')
 def index():
 	return jsonify({"ping": "pong"})
@@ -27,11 +35,11 @@ def index():
 @app.route('/api/books', methods=["GET"])
 def  get_books():
 	books_list = Books.query.all()
-	print('Query done')
-	return jsonify(
-		{"message":"Books saved"},
-		{"books saved": books_list}
-	)
+	
+	book_schema = BookSchema(many=True)
+	results = book_schema.dump(books_list)
+
+	return jsonify(results)
 
 
 #Buscar libro
