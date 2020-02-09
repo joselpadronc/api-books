@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort
 from flask_sqlalchemy import SQLAlchemy
 from json_serializable import JSONSerializable
 from books import Books
@@ -12,6 +12,24 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 JSONSerializable(app)
 
+
+def error_handler(err, msg, detail=None):
+	return jsonify(err=err, msg=msg, detail=detail)
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+	return error_handler(500, 'Internal Server Error', str(e))
+
+
+@app.errorhandler(400)
+def bad_request(e):
+	return error_handler(400, 'Bad request', str(e))
+
+
+@app.errorhandler(404)
+def not_found(e):
+	return error_handler(404, 'Not Found endpoint', str(e))
 
 
 class Books(db.Model):
@@ -31,9 +49,10 @@ def index():
 #Obtener la lista de libros
 @app.route('/api/books', methods=["GET"])
 def  get_books():
-	books_list = Books.query.all()
-
-	return jsonify(books_list)
+	try:
+		return jsonify(ok=True, items=Books.query.all())
+        except Exception as e:
+		abort(500)
 
 
 #Buscar libro
