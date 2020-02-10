@@ -63,15 +63,18 @@ def index():
 def  get_books():
 	try:
 		return jsonify(ok=True, items=Books.query.all())
-        except Exception as e:
+		
+	except Exception as e:
 		return abort(500, e)
 
 
 #Buscar libro
 @app.route('/api/books/id/<int:book_id>', methods=["GET"])
 def search_book(book_id):
+	
 	try:
 		return jsonify(ok=True, item=Books.query.filter_by(id=book_id).first())
+	
 	except Exception as e:
 		return abort(404, e)
 
@@ -90,7 +93,7 @@ def add_book():
 		new_book.save()
 
 		return jsonify({"message": "The book is added"})
-	exect Exception as e:
+	except Exception as e:
 		return abort(400, e)
 
 	
