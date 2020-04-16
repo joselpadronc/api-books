@@ -1,5 +1,5 @@
 # api-books
-Este es un pequeño proeycto API para libros, la que podras hacer los metodos mas usados de HTTP como GET, POST, PUT y DELETE
+Este es un pequeño proyecto API para libros, en la que podras hacer los metodos mas usados de HTTP como GET, POST, PUT y DELETE
 
 ### Como usar este API?
 
